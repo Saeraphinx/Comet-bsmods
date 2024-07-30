@@ -1,0 +1,22 @@
+{
+    "auth": {
+        "discord": {
+            "clientId": "YOUR_DISCORD_CLIENT_ID",
+            "clientSecret": "YOUR_DISCORD_CLIENT_SECRET"
+        },
+        "beatleader": {
+            "clientId": "YOUR_BEATLEADER_CLIENT_ID",
+            "clientSecret": "YOUR_BEATLEADER_CLIENT_SECRET"
+        }
+    },
+    "storage": {
+        "database": "./storage/database.sqlite",
+        "uploadStorage": "I:\\GamerCodingv2\\Comet\\storage\\uploadStorage"
+    },
+    "server": {
+        "sessionSecret": "hello there, you should probably change this",
+        "devmode": true,
+        "url": "http://localhost:5173",
+        "port": 5173
+    }
+}

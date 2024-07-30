@@ -1,0 +1,184 @@
+import { DataTypes, InferAttributes, InferCreationAttributes, Model, ModelStatic, Sequelize } from "sequelize";
+
+export class DatabaseManager {
+    private _instance: DatabaseManager;
+    private sequelize: Sequelize;
+    public users: ModelStatic<User>;
+    public mods: ModelStatic<Mod>;
+    public modVersions: ModelStatic<ModVersion>;
+
+    constructor() {
+        this.sequelize = new Sequelize({
+            dialect: `sqlite`,
+            storage: `./storage/database.sqlite`,
+            timezone: `America/Chicago`
+        });
+        this.initializeTables();
+        console.log(`DatabaseManager initialized.`);
+    }
+
+    public get instance(): DatabaseManager {
+        if (!this._instance) {
+            this._instance = new DatabaseManager();
+        }
+        return this._instance;
+    }
+
+    public async initializeTables() {
+        this.users = User.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true
+            },
+            username: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            beatLeaderID: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            discordID: {
+                type: DataTypes.STRING,
+                allowNull: false
+            }
+        }, {
+            sequelize: this.sequelize,
+            modelName: `users`,
+        });
+
+        this.mods = Mod.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true
+            },
+            author: {
+                type: DataTypes.INTEGER,
+                allowNull: false
+            },
+            title: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            description: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            gitUrl: {
+                type: DataTypes.STRING,
+                allowNull: false
+            }
+        }, {
+            sequelize: this.sequelize,
+            modelName: `mods`
+        });
+
+        this.modVersions = ModVersion.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true
+            },
+            modID: {
+                type: DataTypes.INTEGER,
+                allowNull: false
+            },
+            authorServiceId: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            authorIdType:{
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            version: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            supportedVersions: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            hash: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            originalFileName: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            dependencies: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            downloadUrl: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            beatmodsData: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                get() {
+                    // @ts-expect-error
+                    return JSON.parse(this.getDataValue(`beatmodsData`));
+                },
+                set(value: IBeatModsData) {
+                    // @ts-expect-error
+                    this.setDataValue(`beatmodsData`, JSON.stringify(value));
+                }
+            }
+        }, {
+            sequelize: this.sequelize,
+            modelName: `modVersions`
+        });
+    }
+}
+
+export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+    public id: number;
+    public username: string;
+    public beatLeaderID: string;
+    public discordID: string;
+}
+
+export class Mod extends Model<InferAttributes<Mod>, InferCreationAttributes<Mod>> {
+    public id: number;
+    public author: number;
+    public title: string;
+    public description: string;
+    public gitUrl: string;
+}
+
+export class ModVersion extends Model<InferAttributes<ModVersion>, InferCreationAttributes<ModVersion>> {
+    public id: number;
+    public modID: number;
+    public authorServiceId: number;
+    public authorIdType: AuthorIdType;
+    public version: string;
+    public supportedVersions: string;
+    public hash: string;
+    public originalFileName: string;
+    public dependencies: string; // "BSIPA@^4.3.4,SongCore@^2.0.0" (basically semver seperated by commas)
+    public downloadUrl: string;
+    public beatmodsData: IBeatModsData;
+}
+
+export interface IBeatModsData {
+    category: string;
+    approvalStatus: BeatModsApprovalStatus|string;
+}
+
+export enum BeatModsApprovalStatus {
+    PENDING = `pending`,
+    OUTDATED = `outdated`,
+    APPROVED = `approved`,
+    REJECTED = `rejected`
+}
+
+export enum AuthorIdType {
+    Discord = `discord`,
+    BeatMods = `beatmods`,
+    Unknown = `unknown`
+}
