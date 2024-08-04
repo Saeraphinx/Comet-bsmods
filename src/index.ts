@@ -43,9 +43,9 @@ app.get(`/success`, (req, res) => {
     res.sendFile(path.resolve(`./assets/success.html`));
 });
 
-new SubmissionRoutes(app);
-new BeatLeaderAuthRoutes(app);
-new MiscRoutes(app);
+//new SubmissionRoutes(app);
+//new BeatLeaderAuthRoutes(app);
+//new MiscRoutes(app);
 
 HTTPTools.handleExpressShenanigans(app);
 

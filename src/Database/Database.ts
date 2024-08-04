@@ -42,6 +42,19 @@ export class DatabaseManager {
             discordID: {
                 type: DataTypes.STRING,
                 allowNull: false
+            },
+            permissions: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                defaultValue: UserPermission.USER,
+                get() {
+                    // @ts-expect-error
+                    return this.getDataValue(`permissions`).split(`,`);
+                },
+                set(value: string[]) {
+                    // @ts-expect-error
+                    this.setDataValue(`permissions`, value.join(`,`));
+                }
             }
         }, {
             sequelize: this.sequelize,
@@ -55,7 +68,7 @@ export class DatabaseManager {
                 primaryKey: true
             },
             author: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.STRING,
                 allowNull: false
             },
             title: {
@@ -99,11 +112,31 @@ export class DatabaseManager {
             },
             supportedVersions: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: false,
+                get() {
+                    // @ts-expect-error
+                    return this.getDataValue(`supportedVersions`).split(`,`);
+                },
+                set(value: string[]) {
+                    // @ts-expect-error
+                    this.setDataValue(`supportedVersions`, value.join(`,`));
+                }
             },
-            hash: {
+            zipHash: {
                 type: DataTypes.STRING,
                 allowNull: false
+            },
+            beatModsHash: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                get() {
+                    // @ts-expect-error
+                    return JSON.parse(this.getDataValue(`beatModsHash`));
+                },
+                set(value: IBeatModsData) {
+                    // @ts-expect-error
+                    this.setDataValue(`beatModsHash`, JSON.stringify(value));
+                }
             },
             originalFileName: {
                 type: DataTypes.STRING,
@@ -111,7 +144,15 @@ export class DatabaseManager {
             },
             dependencies: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: false,
+                get() {
+                    // @ts-expect-error
+                    return this.getDataValue(`dependencies`).split(`,`);
+                },
+                set(value: string[]) {
+                    // @ts-expect-error
+                    this.setDataValue(`dependencies`, value.join(`,`));
+                }
             },
             downloadUrl: {
                 type: DataTypes.STRING,
@@ -141,11 +182,27 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     public username: string;
     public beatLeaderID: string;
     public discordID: string;
+    public permissions: string[];
+
+    public static async getUserById(id: string): Promise<User> {
+        return User.findOne({ where: { id } });
+    }
+
+    public async isPermitted(permission: UserPermission): Promise<boolean> {
+        return this.permissions.includes(permission);
+    }
+}
+
+export enum UserPermission {
+    OPERATOR = `operator`,
+    ADMIN = `admin`,
+    MODERATOR = `moderator`,
+    USER = `user`
 }
 
 export class Mod extends Model<InferAttributes<Mod>, InferCreationAttributes<Mod>> {
     public id: number;
-    public author: number;
+    public author: string;
     public title: string;
     public description: string;
     public gitUrl: string;
@@ -157,10 +214,11 @@ export class ModVersion extends Model<InferAttributes<ModVersion>, InferCreation
     public authorServiceId: number;
     public authorIdType: AuthorIdType;
     public version: string;
-    public supportedVersions: string;
-    public hash: string;
+    public supportedVersions: string[];
+    public zipHash: string;
+    public beatModsHash: IBeatModsHash[];
     public originalFileName: string;
-    public dependencies: string; // "BSIPA@^4.3.4,SongCore@^2.0.0" (basically semver seperated by commas)
+    public dependencies: string[]; // "BSIPA@^4.3.4,SongCore@^2.0.0" (basically semver seperated by commas)
     public downloadUrl: string;
     public beatmodsData: IBeatModsData;
 }
@@ -168,6 +226,11 @@ export class ModVersion extends Model<InferAttributes<ModVersion>, InferCreation
 export interface IBeatModsData {
     category: string;
     approvalStatus: BeatModsApprovalStatus|string;
+}
+
+export interface IBeatModsHash {
+    hash: string;
+    file: string;
 }
 
 export enum BeatModsApprovalStatus {
@@ -180,5 +243,6 @@ export enum BeatModsApprovalStatus {
 export enum AuthorIdType {
     Discord = `discord`,
     BeatMods = `beatmods`,
+    Manifest = `manifest`,
     Unknown = `unknown`
 }
