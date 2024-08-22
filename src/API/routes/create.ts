@@ -13,7 +13,7 @@ export class CreatModRoutes {
     }
 
     private async loadRoutes() {
-        this.app.post('/api/mod/:id/upload', param('id').isInt(), body('version').isString(), body('supportedVersions').isArray({min: 1}), body('dependancies').isArray() , async (req, res) => {
+        this.app.post('/api/mod/:id/upload', param('id').isInt(), body('version').isString(), body('supportedVersions').isArray({min: 1}), body('dependancies').isArray(), body('pluginorlibrary').optional().isBoolean(), async (req, res) => {
             const vResult = validationResult(req);
             if (!vResult.isEmpty()) {
                 return res.status(400).send(vResult.array());
@@ -23,6 +23,7 @@ export class CreatModRoutes {
             let version = data['version'] as string;
             let supportedVersions = data['supportedVersions'] as string[];
             let dependancies = data['dependancies'] as string[];
+            let pluginOrLibrary = data['pluginorlibrary'] as boolean; //double check this is validated correctly. cant remember wether or not the optional goes before or after the isBoolean
             let sessionId = req.session.id;
             let user = await User.getUserById(sessionId);
 
@@ -50,6 +51,12 @@ export class CreatModRoutes {
             let isZip = file.mimetype !== `application/zip`
             if (!isZip) {
                 // dependancies = ModTools.getDependencies(file);
+            } else {
+                dependancies.forEach((dependancy) => {
+                    if (typeof dependancy !== `string` || !dependancy.match(/.+@.+/)) { // TODO: update regex
+                        return res.status(400).send({ error: `Invalid version format.` });
+                    }
+                });
             }
 
             let modVersion = await DatabaseManager.instance.modVersions.create({

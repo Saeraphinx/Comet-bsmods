@@ -218,7 +218,7 @@ export class ModVersion extends Model<InferAttributes<ModVersion>, InferCreation
     public zipHash: string;
     public beatModsHash: IBeatModsHash[];
     public originalFileName: string;
-    public dependencies: string[]; // "BSIPA@^4.3.4,SongCore@^2.0.0" (basically semver seperated by commas)
+    public dependencies: string[]; // "BSIPA@4.3.4,SongCore@2.0.0" - versions will be updated when the dependancy releases a mod that is available with the same game version
     public downloadUrl: string;
     public beatmodsData: IBeatModsData;
 }
