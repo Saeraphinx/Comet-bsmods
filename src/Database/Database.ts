@@ -1,7 +1,7 @@
 import { DataTypes, InferAttributes, InferCreationAttributes, Model, ModelStatic, Sequelize } from "sequelize";
 
 export class DatabaseManager {
-    private _instance: DatabaseManager;
+    private static _instance: DatabaseManager;
     private sequelize: Sequelize;
     public users: ModelStatic<User>;
     public mods: ModelStatic<Mod>;
@@ -17,11 +17,11 @@ export class DatabaseManager {
         console.log(`DatabaseManager initialized.`);
     }
 
-    public get instance(): DatabaseManager {
-        if (!this._instance) {
-            this._instance = new DatabaseManager();
+    public static get instance(): DatabaseManager {
+        if (!DatabaseManager._instance) {
+            DatabaseManager._instance = new DatabaseManager();
         }
-        return this._instance;
+        return DatabaseManager._instance;
     }
 
     public async initializeTables() {
@@ -244,5 +244,6 @@ export enum AuthorIdType {
     Discord = `discord`,
     BeatMods = `beatmods`,
     Manifest = `manifest`,
-    Unknown = `unknown`
+    Unknown = `unknown`,
+    Comet = `comet`
 }

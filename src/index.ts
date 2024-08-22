@@ -5,6 +5,7 @@ import { HTTPTools } from './API/classes/HTTPTools';
 import { DatabaseManager } from './Database/Database';
 import path from 'path';
 import { server, devmode } from '../storage/config.json';
+import fileUpload from 'express-fileupload';
 
 console.log(`Starting setup...`);
 const app = express();
@@ -14,6 +15,9 @@ new DatabaseManager();
 
 app.use(express.json({ limit: 100000 }));
 app.use(express.urlencoded({limit : 10000, parameterLimit: 10 }));
+app.use(fileUpload({
+    limits: { fileSize: 50 * 1024 * 1024 },
+  }));
 app.use(session({
     secret: server.sessionSecret,
     name: `session`,
